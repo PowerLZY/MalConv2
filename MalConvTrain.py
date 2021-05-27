@@ -57,7 +57,7 @@ parser.add_argument('--ben_test', type=dir_path, default="data/ben_test", help='
 args = parser.parse_args()
 
 #GPUS = args.gpus
-GPUS = None
+GPUS = [0,2,4,5]
 
 NON_NEG = args.non_neg
 EMBD_SIZE = args.embd_size
@@ -120,7 +120,7 @@ criterion = nn.CrossEntropyLoss()
 # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 optimizer = optim.Adam(model.parameters())
 
-for epoch in tqdm(range(EPOCHS),ncols=80, desc="Epoch"):
+for epoch in tqdm(range(EPOCHS), desc="Epoch"):
     preds = []
     truths = []
     running_loss = 0.0
@@ -131,7 +131,7 @@ for epoch in tqdm(range(EPOCHS),ncols=80, desc="Epoch"):
     epoch_stats = {'epoch': epoch}
 
     model.train()
-    for inputs, labels in tqdm(train_loader, ncols=80, desc="Train_loader"):
+    for inputs, labels in tqdm(train_loader):
 
         # inputs, labels = inputs.to(device), labels.to(device)
         # Keep inputs on CPU, the model will load chunks of input onto device as needed
@@ -160,7 +160,7 @@ for epoch in tqdm(range(EPOCHS),ncols=80, desc="Epoch"):
         train_total += labels.size(0)
         train_correct += (predicted == labels).sum().item()
 
-    # print("Training Accuracy: {}".format(train_correct*100.0/train_total))
+    print("Training Accuracy: {}".format(train_correct*100.0/train_total))
     epoch_stats['train_acc'] = train_correct * 1.0 / train_total
     epoch_stats['train_auc'] = roc_auc_score(truths, preds)
     # epoch_stats['train_loss'] = roc_auc_score(truths, preds)
@@ -173,7 +173,7 @@ for epoch in tqdm(range(EPOCHS),ncols=80, desc="Epoch"):
         mstd = model.module.state_dict()
     else:
         mstd = model.state_dict()
-
+    """
     torch.save({
         'epoch': epoch,
         'model_state_dict': mstd,
@@ -184,7 +184,7 @@ for epoch in tqdm(range(EPOCHS),ncols=80, desc="Epoch"):
         'embd_dim': EMBD_SIZE,
         'non_neg': NON_NEG,
     }, model_path)
-
+    """
     # Test Set Eval
     model.eval()
     eval_train_correct = 0
@@ -193,7 +193,7 @@ for epoch in tqdm(range(EPOCHS),ncols=80, desc="Epoch"):
     preds = []
     truths = []
     with torch.no_grad():
-        for inputs, labels in tqdm(test_loader, ncols=80, desc="Test_loader"):
+        for inputs, labels in tqdm(test_loader):
             inputs, labels = inputs.to(device), labels.to(device)
 
             outputs, _, _ = model(inputs)
